@@ -540,17 +540,26 @@ class Gateway
      */
     public static function sendToUid($uid, $message)
     {
-        $gateway_data         = GatewayProtocol::$empty;
-        $gateway_data['cmd']  = GatewayProtocol::CMD_SEND_TO_UID;
-        $gateway_data['body'] = $message;
+        if(!is_array($uid)){
+            $clients = self::getClientIdByUid($uid);
+            foreach ($clients as $key => $val) {
+                if($val){
+                    self::sendToClient($val, $message);
+                }
+            }
+        }else{
+            $gateway_data         = GatewayProtocol::$empty;
+            $gateway_data['cmd']  = GatewayProtocol::CMD_SEND_TO_UID;
+            $gateway_data['body'] = $message;
 
-        if (!is_array($uid)) {
-            $uid = array($uid);
+            if (!is_array($uid)) {
+                $uid = array($uid);
+            }
+
+            $gateway_data['ext_data'] = json_encode($uid);
+
+            self::sendToAllGateway($gateway_data);
         }
-
-        $gateway_data['ext_data'] = json_encode($uid);
-
-        self::sendToAllGateway($gateway_data);
     }
 
     /**
